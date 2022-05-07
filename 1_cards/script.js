@@ -1,25 +1,18 @@
 const game = {
-    height: 198,
-    width: 320,
+    height: 198 * .6,
+    width: 320 * .6,
     matrix: 4,
-    cards: [
-        {
-            color: '#87D204',
-            isShow: false,
-        },
-        {
-            color: '#D27904',
-            isShow: false,
-        },
-        {
-            color: '#87D204',
-            isShow: false,
-        },
-        {
-            color: '#D27904',
-            isShow: false,
-        },
-    ]
+    firstCard: null,
+    cards: [],
+    getCardById: (cards, cardId) => {
+        let card = null;
+        cards.map(c => {
+           if (c.id === cardId) {
+                card = c;
+            }
+        });
+        return card;
+    }
 }
 
 game.cards = generateCards(game.matrix);
@@ -37,14 +30,26 @@ function generateCards(matrix) {
         cards.push(e)
     }
 
-    const array = [...cards, ...cards];
+    const oldArray = [...cards, ...cards];
+    const newArray = [];
+    
 
-    for (let i = 0; i < 64; i++) {
-        array.sort(()=>Math.random()-0.5);
+
+    for (let i = 0; i < oldArray.length; i++) {
+        const oldE = oldArray[i];
+        const newE = {
+            id: i,
+            color: oldE.color,
+            isShow: false,
+        };
+        newArray.push(newE);
     }
 
+    for (let i = 0; i < 64; i++) {
+        newArray.sort(()=>Math.random()-0.5);
+    }
 
-    return array;
+    return newArray;
 }
 
 function randomColorRGB() {
@@ -69,6 +74,10 @@ $(document).ready(function () {
 
     for (let i = 0; i < game.cards.length; i++) {
         $(".matrix").append("<div id='cube_" + i + "'class ='cube'> </div>");
+        $("#cube_" + i).css ({
+            "width": game.width,
+             "height": game.height
+        });
     }
 
     for (let i = 0; i < game.cards.length; i++) {
@@ -80,6 +89,35 @@ $(document).ready(function () {
                 "background-color": e.color
             });
             console.log(Number(id.replace('cube_', '')));
+
+            const card = 
+                game.getCardById(
+                    game.cards, 
+                    Number(id.replace('cube_', ''))
+                );
+
+            if (!game.firstCard) {
+                game.firstCard = card;
+                console.log(game.firstCard);
+            } else if (!!game.firstCard) {
+                if (game.firstCard.color === card.color) {
+                    //Есть совпадение.
+                } else {
+                    //Нет совпадения.
+                    setTimeout(() => {
+                        hideCard(game.firstCard.id);
+                        hideCard(card.id);
+                        game.firstCard = null;
+                    }, 500);
+                }
+            }
+        });
+    }
+
+
+    function hideCard(cardId) {
+        $("#cube_" + cardId).css ({
+           "background-color": '1A1A1A'
         });
     }
 });
